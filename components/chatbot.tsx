@@ -11,9 +11,10 @@ export default function Chatbot() {
 
     return (
         <div className='flex flex-col h-full my-2 rounded-lg '>
-            <header className='flex p-12 mb-6 bg-blueLojaDoSol rounded-t-md '>
+            <header className='flex items-center justify-between p-12 mb-6 bg-blueLojaDoSol rounded-t-md'>
                 <Image src="/logo.png" alt="logo loja do sol" width={150} height={60} />
-                {/* <h1 className='text-xl font-bold text-white'>Chatbot</h1> */}
+                <h1 className='flex-grow text-3xl font-bold text-white text-center'>IA Aquecedores</h1>
+                <div className="w-[150px]"></div>
             </header>
             <div className='flex flex-col flex-grow p-4 overflow-y-scroll bg-zinc-100 mb-6 rounded-md content-evenly'>
                 {messages
