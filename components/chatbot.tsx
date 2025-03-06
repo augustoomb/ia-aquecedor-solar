@@ -4,12 +4,17 @@ import { useChat } from 'ai/react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
+import Image from "next/image";
 
 export default function Chatbot() {
     const { messages, input, handleInputChange, handleSubmit } = useChat();
 
     return (
         <div className='flex flex-col h-full my-2 rounded-lg '>
+            <header className='flex p-12 mb-6 bg-blueLojaDoSol rounded-t-md '>
+                <Image src="/logo.png" alt="logo loja do sol" width={150} height={60} />
+                {/* <h1 className='text-xl font-bold text-white'>Chatbot</h1> */}
+            </header>
             <div className='flex flex-col flex-grow p-4 overflow-y-scroll bg-zinc-100 mb-6 rounded-md content-evenly'>
                 {messages
                     .filter(message => message.content?.trim() !== "")
@@ -29,7 +34,7 @@ export default function Chatbot() {
 
             <form className="flex flex-row gap-x-6" onSubmit={handleSubmit}>
                 <Input className='flex-grow' name="prompt" value={input} onChange={handleInputChange} />
-                <Button type="submit">Enviar</Button>
+                <Button variant={'yellow'} type="submit">Enviar</Button>
             </form>
         </div>
     );
