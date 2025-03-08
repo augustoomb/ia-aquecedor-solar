@@ -3,8 +3,9 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { TaskType } from "@google/generative-ai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
-export const teste = async () => {
+export const retrieveContext = async (question: string) => {
     try {
         const dataPath = "./data";
         const geminiAPI = process.env.GEMINI_API_KEY;
@@ -28,6 +29,7 @@ export const teste = async () => {
 
 
 
+
         // EMBEDDINGS
         const embeddings = new GoogleGenerativeAIEmbeddings({
             apiKey: geminiAPI,
@@ -35,9 +37,23 @@ export const teste = async () => {
             modelName: "embedding-001", // Modelo de embedding gratuito do Google
         });
 
-        console.log("chegou aqui sem erro")
+
+
+
+        // VECTOR STORE
+        const vectorStore = new MemoryVectorStore(embeddings);
+        await vectorStore.addDocuments(splitDocs);
+
+        const results = await vectorStore.similaritySearch(
+            question
+        );
+
+
+        const context = results.map(doc => doc.pageContent).join("\n\n");
+
+        return context;
     } catch (error) {
-        console.log("ERRO!")
+        console.log(JSON.stringify(error));
     }
 
 }

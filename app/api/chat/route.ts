@@ -3,32 +3,43 @@ import { NextResponse } from 'next/server';
 import { google } from '@ai-sdk/google';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
-import { teste } from '@/lib/langchain';
+import { retrieveContext } from '@/lib/langchain';
+import test from 'node:test';
 
-const geminiAPI = process.env.GEMINI_API_KEY;
 
 export async function POST(req: Request) {
     try {
-        // const { messages } = await req.json();
+        const geminiAPI = process.env.GEMINI_API_KEY;
 
-        // const google = createGoogleGenerativeAI({
-        //     apiKey: geminiAPI,
-        // });
+        const { messages } = await req.json();
 
-        // const result = streamText({
-        //     model: google('gemini-1.5-flash'), //ver essa linha
-        //     messages,
-        //     maxSteps: 3,
-        //     system: `Você é um assistente útil. Verifique sua base de conhecimento antes de responder a quaisquer perguntas.`,
-        // });
+        const question = messages[0].content;
 
-        // return result.toDataStreamResponse();
+        const retrievedContext = await retrieveContext(question);
 
-        teste();
+        const systemMessage = `Você é um assistente útil. Evite responder avisando que você é um assistente ou de onde pegou a informação.
+        Apenas responda a pergunta.
+        Utilize as informações a seguir para responder às perguntas:
+        Contexto: ${retrievedContext}`
 
-        return NextResponse.json({ ok: true });
+        const google = createGoogleGenerativeAI({
+            apiKey: geminiAPI,
+        });
+
+        const result = streamText({
+            model: google('gemini-1.5-flash'),
+            messages: messages,
+            maxSteps: 3,
+            system: systemMessage,
+        });
+
+        return result.toDataStreamResponse();
 
     } catch (error) {
-        return NextResponse.error();
+        console.error("Erro na API:", error);
+        return NextResponse.json(
+            { error: "Ocorreu um erro ao processar sua solicitação" },
+            { status: 500 }
+        );
     }
 }
