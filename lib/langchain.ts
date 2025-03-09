@@ -4,6 +4,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { TaskType } from "@google/generative-ai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { FaissStore } from "@langchain/community/vectorstores/faiss";
 
 export const retrieveContext = async (question: string) => {
     try {
@@ -40,8 +41,14 @@ export const retrieveContext = async (question: string) => {
 
 
 
+        // VECTOR STORE IN MEMORY
+        // const vectorStore = new MemoryVectorStore(embeddings);
+
+
         // VECTOR STORE
-        const vectorStore = new MemoryVectorStore(embeddings);
+        const vectorStore = new FaissStore(embeddings, {});
+
+
         await vectorStore.addDocuments(splitDocs);
 
         const results = await vectorStore.similaritySearch(
@@ -53,7 +60,8 @@ export const retrieveContext = async (question: string) => {
 
         return context;
     } catch (error) {
-        console.log(JSON.stringify(error));
+        console.log("Erro langchain:", error);
+        return "Erro ao recuperar contexto";
     }
 
 }
