@@ -1,26 +1,37 @@
-import { NextApiResponse } from 'next';
 import { NextResponse } from 'next/server';
-import { google } from '@ai-sdk/google';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
-import { retrieveContext } from '@/lib/langchain';
-
-
 
 export async function POST(req: Request) {
     try {
         const geminiAPI = process.env.GEMINI_API_KEY;
+        const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+        const LANGFLOW_API_URL = process.env.LANGFLOW_API_URL;
 
         const { messages } = await req.json();
 
         const question = messages[0].content;
 
-        const retrievedContext = await retrieveContext(question);
+        const url = `${LANGFLOW_API_URL}`;
 
-        const systemMessage = `Você é um assistente útil. Evite responder avisando que você é um assistente ou de onde pegou a informação.
-        Apenas responda a pergunta.
-        Utilize as informações a seguir para responder às perguntas:
-        Contexto: ${retrievedContext}`
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
+            },
+            body: JSON.stringify({
+                "input_value": question
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const systemMessage = data.outputs[0].outputs[0].results.message.data.text;
 
         const google = createGoogleGenerativeAI({
             apiKey: geminiAPI,
