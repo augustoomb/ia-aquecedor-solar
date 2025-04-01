@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { instructions } from '@/app/config/llm';
+import { createOpenAI } from '@ai-sdk/openai';
 
 export async function POST(req: Request) {
     try {
-        const geminiAPI = process.env.GEMINI_API_KEY;
+        const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
         const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
         const LANGFLOW_API_URL = process.env.LANGFLOW_API_URL;
         const url = `${LANGFLOW_API_URL}`;
 
         const { messages } = await req.json();
+
+        // console.log(messages);
 
         const question = messages[0].content;
 
@@ -31,19 +33,21 @@ export async function POST(req: Request) {
 
         const data = await response.json();
 
-        const systemMessage = data.outputs[0].outputs[0].results.text.data.text;
+        const systemMessage = data.outputs[0].outputs[0].results.message.data.text;
 
         const systemMessageWithInstructions = `
             ${instructions}
             ${systemMessage}
         `;
 
-        const google = createGoogleGenerativeAI({
-            apiKey: geminiAPI,
+        console.log(systemMessageWithInstructions);
+
+        const openaiProvider = createOpenAI({
+            apiKey: OPENAI_API_KEY,
         });
 
         const result = streamText({
-            model: google('gemini-1.5-flash'),
+            model: openaiProvider('gpt-4o'),
             messages: messages,
             maxSteps: 3,
             system: systemMessageWithInstructions,
